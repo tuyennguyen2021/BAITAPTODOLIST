@@ -18,17 +18,12 @@ export default class Services {
       data: data,
     });
   }
-  getItemById(id) {
+
+  updateItem(id, data) {
     return axios({
       url: `https://625bc0d2398f3bc782ae7e24.mockapi.io/api/todoList/${id}`,
-      method: "GET",
-    });
-  }
-  updateItem(toDo) {
-    return axios({
-      url: `https://625bc0d2398f3bc782ae7e24.mockapi.io/api/todoList/${toDo.id}`,
       method: "PUT",
-      Data: toDo,
+      data: data,
     });
   }
 }

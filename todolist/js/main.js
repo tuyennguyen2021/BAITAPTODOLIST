@@ -1,7 +1,11 @@
 import Services from "./services.js";
 import ToDo from "./todo.js";
+import ListData from "./listarr.js";
+import Validation from "./validation.js";
 
 const services = new Services();
+const listData = new ListData();
+const validation = new Validation();
 const getEle = (id) => {
   return document.getElementById(id);
 };
@@ -10,16 +14,36 @@ const renderItem = (data) => {
   let content = "";
   data.forEach((item) => {
     console.log(item);
-    content += `
-        <li>${item.title} 
-            <div>
-              <i style=" cursor: pointer" class="fa-solid fa-trash-can" onclick="deleteItem(${item.id})"></i>
-              <i style=" cursor: pointer" class="fa-solid fa-circle-check" onclick="checkItem(${item.id})"></i>
-            </div>
-        </li>
-    `;
+    if (item.status === false) {
+      content += `
+          <li>${item.title} 
+              <div>
+                <i style=" cursor: pointer" class="fa-solid fa-trash-can" onclick="deleteItem(${item.id})"></i>
+                <i style=" cursor: pointer" class="fa-solid fa-circle-check" onclick="checkItem(${item.id})"></i>
+              </div>
+          </li>
+      `;
+    }
   });
   document.getElementById("todo").innerHTML = content;
+};
+
+const renderItemDone = (data) => {
+  let content = "";
+  data.forEach((item) => {
+    if (item.status === true) {
+      content += `
+            <li>${item.title}
+                <div>
+                  <i style=" cursor: pointer; color: #444" class="fa-solid fa-trash-can" onclick="deleteItem(${item.id})"></i>
+                  <i style=" cursor: pointer; color: #25b99a" class="fa-solid fa-circle-check"></i>
+                </div
+            </li>
+      `;
+    }
+  });
+
+  getEle("completed").innerHTML = content;
 };
 
 // lay data item xuong
@@ -28,7 +52,30 @@ const getListItem = () => {
   services
     .fetchData()
     .then((res) => {
-      renderItem(res.data);
+      listData.arr = res.data;
+      if (listData.sort) {
+        renderItem(
+          listData.arr.sort((a, b) => {
+            return b.title.toLowerCase().localeCompare(a.title.toLowerCase());
+          })
+        );
+        renderItemDone(
+          listData.arr.sort((a, b) => {
+            return b.title.toLowerCase().localeCompare(a.title.toLowerCase());
+          })
+        );
+      } else {
+        renderItem(
+          listData.arr.sort((a, b) => {
+            return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
+          })
+        );
+        renderItemDone(
+          listData.arr.sort((a, b) => {
+            return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
+          })
+        );
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -55,57 +102,48 @@ window.deleteItem = deleteItem;
 getEle("addItem").addEventListener("click", () => {
   const title = getEle("newTask").value;
   const toDo = new ToDo("", title);
-
-  services
-    .addItem(toDo)
-    .then(() => {
-      getListItem();
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  let isValid = true;
+  if (validation.checkEmty(title)) {
+    isValid = false;
+  }
+  if (isValid) {
+    services
+      .addItem(toDo)
+      .then(() => {
+        getListItem();
+        getEle("newTask").value = "";
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
 });
 
 // cap nhat item
 
-const renderItemDone = (data) => {
-  const content = data.reduce((contenthtml, item) => {
-    return (contenthtml += `
-          <li>${item.title}
-              <div>
-                <i style=" cursor: pointer" class="fa-solid fa-trash-can"></i>
-                <i style=" cursor: pointer; color: green" class="fa-solid fa-circle-check"></i>
-              </div
-          </li>
-    `);
-  }, "");
-
-  getEle("completed").innerHTML = content;
-};
-
-const getListItemDone = (id) => {
+const updateItem = (id) => {
   services
-    .getItemById(id)
-    .then((res) => {
-      renderItemDone(res.data);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-};
-
-getListItemDone();
-
-const checkItem = (id) => {
-  services
-    .getItemById(id)
+    .updateItem(id, { status: true })
     .then(() => {
+      window.location.reload();
+      document.querySelector(".todo .fa-trash-can").style = "color:gray";
       deleteItem();
-      getListItemDone();
     })
     .catch((err) => {
       console.log(err);
     });
 };
 
-window.checkItem = checkItem;
+window.checkItem = updateItem;
+
+//sort item todo
+
+getEle("two").addEventListener("click", () => {
+  listData.sort = false;
+  getListItem();
+});
+
+getEle("three").addEventListener("click", () => {
+  listData.sort = true;
+  getListItem();
+});
