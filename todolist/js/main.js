@@ -52,6 +52,7 @@ const getListItem = () => {
   services
     .fetchData()
     .then((res) => {
+      renderItemDone(res.data);
       listData.arr = res.data;
       if (listData.sort) {
         renderItem(
@@ -59,18 +60,8 @@ const getListItem = () => {
             return b.title.toLowerCase().localeCompare(a.title.toLowerCase());
           })
         );
-        renderItemDone(
-          listData.arr.sort((a, b) => {
-            return b.title.toLowerCase().localeCompare(a.title.toLowerCase());
-          })
-        );
       } else {
         renderItem(
-          listData.arr.sort((a, b) => {
-            return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
-          })
-        );
-        renderItemDone(
           listData.arr.sort((a, b) => {
             return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
           })
